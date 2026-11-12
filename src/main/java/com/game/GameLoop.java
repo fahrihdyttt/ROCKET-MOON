@@ -9,7 +9,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +32,11 @@ public class GameLoop extends AnimationTimer {
     private final Image spaceBgImg;
     private final Image flagImg;
 
+    // Variabel Custom Font Pixel
+    private Font titleFont;
+    private Font subtitleFont;
+    private Font hudFont;
+
     private GameState state = GameState.MENU;
     private boolean moveLeft = false;
     private boolean moveRight = false;
@@ -51,6 +56,24 @@ public class GameLoop extends AnimationTimer {
         this.moonImg = moonImg;
         this.spaceBgImg = spaceBgImg;
         this.flagImg = flagImg;
+
+        loadCustomFonts();
+    }
+
+    private void loadCustomFonts() {
+        try {
+            // Memuat font pixel dari folder resources/fonts/
+            titleFont = Font.loadFont(getClass().getResourceAsStream("/fonts/PressStart2P-Regular.ttf"), 22);
+            subtitleFont = Font.loadFont(getClass().getResourceAsStream("/fonts/PressStart2P-Regular.ttf"), 11);
+            hudFont = Font.loadFont(getClass().getResourceAsStream("/fonts/PressStart2P-Regular.ttf"), 14);
+        } catch (Exception e) {
+            System.err.println("Gagal memuat custom font, menggunakan font default.");
+        }
+
+        // Fallback jika file .ttf belum dimasukkan
+        if (titleFont == null) titleFont = Font.font("Monospaced", 24);
+        if (subtitleFont == null) subtitleFont = Font.font("Monospaced", 14);
+        if (hudFont == null) hudFont = Font.font("Monospaced", 16);
     }
 
     @Override
@@ -70,7 +93,6 @@ public class GameLoop extends AnimationTimer {
         if (moveRight) rocket.moveRight();
 
         rocket.updateParticles(true);
-
         score += 5;
 
         if (score >= 5000) {
@@ -165,17 +187,28 @@ public class GameLoop extends AnimationTimer {
     }
 
     private void renderMenuScreen() {
+        // Mengatur perataan teks agar otomatis tepat di tengah layar (CENTER)
+        gc.setTextAlign(TextAlignment.CENTER);
+
+        // Judul 2 Baris agar proporsional & tidak keluar layar
         gc.setFill(Color.GOLD);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 30));
-        gc.fillText("SPACE MISSION: MOON LANDING", width / 2.0 - 220, height / 2.0 - 80);
+        gc.setFont(titleFont);
+        gc.fillText("SPACE MISSION:", width / 2.0, height / 2.0 - 110);
+        gc.fillText("MOON LANDING", width / 2.0, height / 2.0 - 75);
 
+        // Subjudul instruksi
         gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
-        gc.fillText("Hindari asteroid & capai skor 5000 untuk mendarat!", width / 2.0 - 210, height / 2.0 - 30);
+        gc.setFont(subtitleFont);
+        gc.fillText("Hindari asteroid & capai skor 5000", width / 2.0, height / 2.0 - 20);
+        gc.fillText("untuk mendarat di bulan!", width / 2.0, height / 2.0);
 
+        // Tombol Mulai
         gc.setFill(Color.LIGHTGREEN);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 22));
-        gc.fillText("Tekan ENTER untuk Memulai Game", width / 2.0 - 180, height / 2.0 + 50);
+        gc.setFont(hudFont);
+        gc.fillText("Tekan ENTER untuk Mulai", width / 2.0, height / 2.0 + 70);
+
+        // Kembalikan alignment ke LEFT untuk kebutuhan render lain
+        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     private void renderGameplay() {
@@ -184,9 +217,10 @@ public class GameLoop extends AnimationTimer {
             asteroid.render(gc);
         }
 
+        gc.setTextAlign(TextAlignment.LEFT);
         gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        gc.fillText("Skor: " + score + " / 5000", 20, 40);
+        gc.setFont(hudFont);
+        gc.fillText("SKOR: " + score + " / 5000", 20, 40);
     }
 
     private void renderLandingAnimation() {
@@ -196,9 +230,11 @@ public class GameLoop extends AnimationTimer {
 
         rocket.render(gc);
 
+        gc.setTextAlign(TextAlignment.CENTER);
         gc.setFill(Color.CYAN);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 22));
-        gc.fillText("MENDARAT DI BULAN...", width / 2.0 - 110, 100);
+        gc.setFont(hudFont);
+        gc.fillText("MENDARAT DI BULAN...", width / 2.0, 100);
+        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     private void renderVictoryScreen() {
@@ -212,16 +248,19 @@ public class GameLoop extends AnimationTimer {
             gc.drawImage(flagImg, width / 2.0 + 40, height - 230, 50, 60);
         }
 
+        gc.setTextAlign(TextAlignment.CENTER);
         gc.setFill(Color.GOLD);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 28));
-        gc.fillText("MISI SUKSES!", width / 2.0 - 90, 120);
+        gc.setFont(titleFont);
+        gc.fillText("MISI SUKSES!", width / 2.0, 120);
+
         gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
-        gc.fillText("Pilot Berhasil Mendarat & Menancapkan Bendera!", width / 2.0 - 200, 160);
+        gc.setFont(subtitleFont);
+        gc.fillText("Pilot Berhasil Mendarat & Menancapkan Bendera!", width / 2.0, 160);
 
         gc.setFill(Color.LIGHTGREEN);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        gc.fillText("Tekan 'R' untuk Main Lagi", width / 2.0 - 120, 210);
+        gc.setFont(hudFont);
+        gc.fillText("Tekan 'R' untuk Main Lagi", width / 2.0, 210);
+        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     private void renderGameOverScreen() {
@@ -231,17 +270,19 @@ public class GameLoop extends AnimationTimer {
 
         explosionManager.render(gc);
 
+        gc.setTextAlign(TextAlignment.CENTER);
         gc.setFill(Color.RED);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 36));
-        gc.fillText("GAME OVER", width / 2.0 - 110, height / 2.0 - 30);
+        gc.setFont(titleFont);
+        gc.fillText("GAME OVER", width / 2.0, height / 2.0 - 30);
 
         gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
-        gc.fillText("Skor Akhir: " + score, width / 2.0 - 65, height / 2.0 + 10);
+        gc.setFont(hudFont);
+        gc.fillText("Skor Akhir: " + score, width / 2.0, height / 2.0 + 15);
 
         gc.setFill(Color.YELLOW);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        gc.fillText("Tekan 'R' untuk Restart Misi", width / 2.0 - 130, height / 2.0 + 60);
+        gc.setFont(subtitleFont);
+        gc.fillText("Tekan 'R' untuk Restart Misi", width / 2.0, height / 2.0 + 60);
+        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     public void restartGame() {
